@@ -14,9 +14,12 @@ go get -u github.com/gflydev/cache@v1.0.1
 Quick usage `main.go`
 ```go
 import (
-    _ "github.com/gflydev/cache/redis"
+    cacheRedis "github.com/gflydev/cache/redis"
     "github.com/gflydev/cache"
 )
+
+// Register Redis cache
+cache.Register(cacheRedis.New())
 
 // Set cache 15 days
 if err = cache.Set(key, value, time.Duration(15*24*3600) * time.Second); err != nil {

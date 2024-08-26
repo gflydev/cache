@@ -10,12 +10,14 @@ import (
 	"time"
 )
 
-var redisCache *redis.Client
+// ========================================================================================
+// 										Structure
+// ========================================================================================
 
 // New func for connecting to Redis server.
-func init() {
+func New() *Driver {
 	// Define Redis database number.
-	dbNumber := utils.Getenv("REDIS_DB_NUMBER", 0)
+	dbNumber := utils.Getenv("REDIS_DEFAULT_DB", 0)
 
 	// Build Redis connection URL.
 	redisConnURL := fmt.Sprintf(
@@ -31,23 +33,25 @@ func init() {
 		DB:       dbNumber,
 	}
 
-	redisCache = redis.NewClient(options)
-
-	cache.Register(driver{})
+	return &Driver{
+		redisCache: redis.NewClient(options),
+	}
 }
 
-type driver struct{}
+type Driver struct {
+	redisCache *redis.Client
+}
 
-func (r driver) Set(key string, value interface{}, expiration time.Duration) error {
-	if err := redisCache.Set(context.Background(), cache.Key(key), value, expiration).Err(); err != nil {
+func (r *Driver) Set(key string, value interface{}, expiration time.Duration) error {
+	if err := r.redisCache.Set(context.Background(), cache.Key(key), value, expiration).Err(); err != nil {
 		log.Errorf("Error while writing Redis cache %q", err)
 		return err
 	}
 
 	return nil
 }
-func (r driver) Get(key string) (interface{}, error) {
-	val, err := redisCache.Get(context.Background(), cache.Key(key)).Result()
+func (r *Driver) Get(key string) (interface{}, error) {
+	val, err := r.redisCache.Get(context.Background(), cache.Key(key)).Result()
 	if err != nil {
 		log.Errorf("Error while reading Redis cache %q", err)
 		return nil, err
@@ -56,8 +60,8 @@ func (r driver) Get(key string) (interface{}, error) {
 	return val, nil
 }
 
-func (r driver) Del(key string) error {
-	if err := redisCache.Del(context.Background(), cache.Key(key)).Err(); err != nil {
+func (r *Driver) Del(key string) error {
+	if err := r.redisCache.Del(context.Background(), cache.Key(key)).Err(); err != nil {
 		log.Errorf("Error while deleting Redis cache %q", err)
 		return err
 	}
