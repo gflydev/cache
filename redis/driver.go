@@ -53,7 +53,7 @@ func (r *Driver) Set(key string, value interface{}, expiration time.Duration) er
 func (r *Driver) Get(key string) (interface{}, error) {
 	val, err := r.redisCache.Get(context.Background(), cache.Key(key)).Result()
 	if err != nil {
-		log.Errorf("Error while reading Redis cache %q", err)
+		log.Warnf("Error while reading key `%v`", key)
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (r *Driver) Get(key string) (interface{}, error) {
 
 func (r *Driver) Del(key string) error {
 	if err := r.redisCache.Del(context.Background(), cache.Key(key)).Err(); err != nil {
-		log.Errorf("Error while deleting Redis cache %q", err)
+		log.Warnf("Error while deleting key `%v`", key)
 		return err
 	}
 
